@@ -31,8 +31,9 @@ for point_id in range(0, num_points):
             pq.put(job, job.start_time)
 
         # Init the online algorithms
-        online_alg = OnlineSolver(job_set, num_slots, ele_price)
-        online_df = OnlineDemandFirst(job_set, num_slots, ele_price)
+        num_pms = len(job_set)
+        online_alg = OnlineSolver(num_pms, num_slots, ele_price)
+        online_df = OnlineDemandFirst(num_pms, num_slots, ele_price)
         opt_lb = ILPSolver(job_set, pm_set, ele_price)
 
         # Simulate the running of time
@@ -50,9 +51,13 @@ for point_id in range(0, num_points):
             if len(cur_job_set) == 0:
                 continue
 
+            # Push the cur_job_set to the online algorithm engine
+            online_alg.job_set = cur_job_set
+            online_df.job_set = cur_job_set
+
             # Run the online algorithms to schedule the cur_job_set
-            online_alg.partition_round()
             online_df.demand_first()
+            online_alg.partition_round()
 
         # Evaluate cost and number of active PMs
         cost_alg = online_alg.evaluate_ele_cost()
@@ -96,5 +101,5 @@ for i in range(num_points):
 print
 for i in range(num_points):
     for j in range(num_algorithms):
-        print results_num[i][j]
+        print results_num[i][j],
     print

@@ -26,23 +26,28 @@ class Group:
 
 class OnlineSolver:
 
-    def __init__(self, job_set, len_slots, ele_price, groups=None):
+    def __init__(self, num_pms, len_slots, ele_price, groups=None):
         """
-        :param job_set: VMs
+        :param num_pms: number of PMs
         :param len_slots: T
         :param ele_price: electricity price
         :return: cost
-        :type job_set: dict[int, Job]
+        :type num_pms: int
         :type len_slots: int
         :type ele_price: list[float]
         :type groups: dict[int, Group]
         """
-        self.job_set = job_set
+
+        self.num_pms = num_pms
+        self.job_set = {}
+        """:type : dict[int, Job]"""
+
         self.ele_price = ele_price
         if groups is None:
             self.groups = {}
         else:
             self.groups = groups
+
         self.refined_groups = {}
 
         self.cur_pm_id = 1
@@ -53,7 +58,24 @@ class OnlineSolver:
         self.l_min = L_MIN
         self.l_max = L_MAX
 
+        # Create PMs
+        self.pm_set = {}
+        for i in range(self.num_pms):
+            pm_id = i + 1
+            pm = PhysicalMachine(pm_id, num_slots=len_slots)
+            self.pm_set[pm_id] = pm
+
+        # Create refined PMs (for virtual allocation)
+        self.refined_pm_set = {}
+        for i in range(self.num_pms):
+            pm_id = i + 1
+            refined_pm = PhysicalMachine(pm_id, num_slots=len_slots)
+            self.refined_pm_set[pm_id] = refined_pm
+
+    def __init_groups(self):
         # Init the group set
+        self.groups = {}
+        self.refined_groups = {}
         # Notice: DO NOT use math.log(x), the default base is e = 2.718...!
         k_max = int(math.ceil(math.log(float(self.l_max) / float(self.l_min), 2)))
         min_length = self.l_min
@@ -63,25 +85,14 @@ class OnlineSolver:
             min_length = max_length + 1
             max_length = min_length * 2 - 1
 
-        # Create PMs
-        self.pm_set = {}
-        for i in range(len(job_set)):
-            pm_id = i + 1
-            pm = PhysicalMachine(pm_id, num_slots=len_slots)
-            self.pm_set[pm_id] = pm
-
-        # Create refined PMs (for virtual allocation)
-        self.refined_pm_set = {}
-        for i in range(len(job_set)):
-            pm_id = i + 1
-            refined_pm = PhysicalMachine(pm_id, num_slots=len_slots)
-            self.refined_pm_set[pm_id] = refined_pm
-
     def partition_round(self):
         """
         Online algorithm Partition-Round.
         :rtype: float
         """
+
+        self.__init_groups()
+
         # We first partition the VMs according to the lengths of their execution time intervals.
         # If length of J_i is among [L_MIN * 2^k, L_MIN * 2^(k+1)], then J_i is grouped into set G_k where
         # 0 <= k <= ceil(log(L_MAX / L_MIN)) - 1
@@ -119,7 +130,7 @@ class OnlineSolver:
             # print "len refined_group: %d" % (len(refined_group.jobs))
             self.__next_fit(refined_group)
 
-        self.reset()
+        #self.reset()
 
         # Finally, by keeping the allocation for J_i same as that of J'_i in the virtual allocation, we obtain
         # the desired final allocation.
@@ -268,17 +279,18 @@ class OnlineSolver:
 
 class OnlineDemandFirst:
 
-    def __init__(self, job_set, len_slots, ele_price):
+    def __init__(self, num_pms, len_slots, ele_price):
         """
-        :param job_set: VMs
+        :param num_pms: num of PMs
         :param len_slots: length of the simulation time
         :param ele_price: electricity price
         :return: cost
-        :type job_set: dict[int, Job]
+        :type num_pms: int
         :type len_slots: int
         :type ele_price: list[float]
         """
-        self.job_set = job_set
+        self.num_pms = num_pms
+        self.job_set = {}
         self.ele_price = ele_price
 
         self.cur_pm_id = 1
@@ -286,7 +298,7 @@ class OnlineDemandFirst:
 
         # Create PMs
         self.pm_set = {}
-        for i in range(len(job_set)):
+        for i in range(num_pms):
             pm_id = i + 1
             pm = PhysicalMachine(pm_id, num_slots=len_slots)
             self.pm_set[pm_id] = pm

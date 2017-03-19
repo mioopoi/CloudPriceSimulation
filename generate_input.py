@@ -20,9 +20,10 @@ def gen_data(num_jobs, num_slots):
 
     # generate VMs
     for i in range(1, num_jobs+1):
-        start_time = random.randint(0, max_t - min_i)
+        #start_time = random.randint(0, max_t - min_i)
+        start_time = random.randint(0, min_i / 10)
         # end_time = random.randint(start_time+min_i, max_t)
-        end_time = min(start_time + random.randint(1, num_slots/20), max_t)
+        end_time = min(start_time + random.randint(1, num_slots/10), max_t)
         L_MIN = min(end_time - start_time + 1, L_MIN)
         L_MAX = max(end_time - start_time + 1, L_MAX)
 
@@ -53,7 +54,7 @@ def gen_data(num_jobs, num_slots):
         price = 0.0
         while price <= 0.0 or price > 16.0:
             price = random.normalvariate(0.5, 0.2)
-        j = i + 6
+        j = i + 1
         while i < num_slots and i < j:
             ele_price[i] = price
             i += 1

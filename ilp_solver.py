@@ -8,6 +8,7 @@ class ILPSolver:
     def __init__(self, job_set, pm_set, ele_price):
         self.job_set = job_set
         self.pm_set = pm_set
+        """:type : dict[int, PhysicalMachine]"""
         self.ele_price = ele_price
         self.x = {}  # Plant job decision variables: x[i,j] == 1 if VM(i) is scheduled on PM(j)
         self.u = {}
@@ -97,7 +98,12 @@ class ILPSolver:
         """
         :rtype: float
         """
-        num = 0.0
+        utilization = [0.0]*len(self.pm_set[1].utilization)
         for i in self.job_set:
-            num += self.job_set[i].demand
+            job = self.job_set[i]
+            for t in range(job.start_time, job.end_time + 1):
+                utilization[t] += job.demand
+        num = 0.0
+        for t in range(len(utilization)):
+            num = max(num, utilization[t])
         return num
