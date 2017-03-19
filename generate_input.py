@@ -31,10 +31,11 @@ def gen_data(num_jobs, num_slots):
             demand = random.normalvariate(0.16, 0.1)
         job = Job(i, start_time, end_time, demand)
         job_set[i] = job
+    print L_MAX
 
     # generate PMs
     # We assume the number of PMs is equal to the number of jobs.
-    num_pms = num_jobs / 2
+    num_pms = num_jobs
     for i in range(1, num_pms+1):
         pm = PhysicalMachine(i, num_slots=num_slots)
         pm_set[i] = pm

@@ -164,16 +164,16 @@ class OnlineSolver:
         :type refined_group: Group
         """
         for refined_job in refined_group.jobs:
-            if self.__can_schedule(refined_job, self.cur_pm_id, self.refined_pm_set):
-                self.__schedule(refined_job, self.cur_pm_id, self.refined_pm_set)
+            if self.can_schedule(refined_job, self.cur_pm_id, self.refined_pm_set):
+                self.schedule(refined_job, self.cur_pm_id, self.refined_pm_set)
             else:
                 self.cur_pm_id += 1
-                self.__schedule(refined_job, self.cur_pm_id, self.refined_pm_set)
+                self.schedule(refined_job, self.cur_pm_id, self.refined_pm_set)
             # set the schedule of real job same as that of the virtual job
             self.job_set[refined_job.id].scheduled_pm_id = self.cur_pm_id
 
     @staticmethod
-    def __can_schedule(job, pm_id, pm_set):
+    def can_schedule(job, pm_id, pm_set):
         pm = pm_set[pm_id]
         for t in range(job.start_time, job.end_time + 1):
             if pm.utilization[t] + job.demand > pm.capacity:
@@ -181,12 +181,15 @@ class OnlineSolver:
         return True
 
     @staticmethod
-    def __schedule(job, pm_id, pm_set):
+    def schedule(job, pm_id, pm_set):
         """
         :param job: VM
+        :param pm_id:
+        :param pm_set
         :return:
         :type job: Job
         :type pm_id: int
+        :type pm_set: dict[int, PhysicalMachine]
         :rtype: bool
         """
         pm = pm_set[pm_id]
@@ -209,9 +212,9 @@ class OnlineSolver:
         for job in group.jobs:
             # print "original pm id: %d" % (job.scheduled_pm_id),
             # if not write like the following, it may cause an error
-            while not self.__can_schedule(job, job.scheduled_pm_id, self.pm_set):
+            while not self.can_schedule(job, job.scheduled_pm_id, self.pm_set):
                 job.scheduled_pm_id += 1
-            self.__schedule(job, job.scheduled_pm_id, self.pm_set)
+            self.schedule(job, job.scheduled_pm_id, self.pm_set)
             self.active_pm_id.add(job.scheduled_pm_id)  # update the active pm set
             # print "can! new pm id: %d" % (job.scheduled_pm_id)
             '''
@@ -223,21 +226,44 @@ class OnlineSolver:
                 sys.exit(-2)
             '''
 
-    def evaluate_cost(self):
+    def evaluate_ele_cost(self):
+        return self.evaluate_cost(self.active_pm_id, self.pm_set, self.ele_price)
+
+    def evaluate_pms_num(self):
+        return self.evaluate_pm_num(self.active_pm_id)
+
+    @staticmethod
+    def evaluate_cost(active_pm_id, pm_set, ele_price):
+        """
+        :param active_pm_id:
+        :param pm_set:
+        :param ele_price:
+        :return: cost
+        :type active_pm_id: set[int]
+        :type pm_set: dict[int, PhysicalMachine]
+        :type ele_price: list[float]
+        :rtype: float
+        """
         e_i = 0.1
         e_p = 0.2
         cost = 0.0
-        for i in self.active_pm_id:
-            pm = self.pm_set[i]
+        for i in active_pm_id:
+            pm = pm_set[i]
             for t in range(0, len(pm.utilization)):
                 if pm.utilization[t] > 0.0:
                     power_consumption = e_i + (e_p - e_i) * pm.utilization[t]
-                    cost += (power_consumption * self.ele_price[t])
+                    cost += (power_consumption * ele_price[t])
         return cost
 
-    def evaluate_pm_num(self):
-
-        return len(self.active_pm_id)
+    @staticmethod
+    def evaluate_pm_num(active_pm_id):
+        """
+        :param active_pm_id:
+        :type active_pm_id: set[int]
+        :return: number of active PM
+        :rtype: int
+        """
+        return len(active_pm_id)
 
 
 class OnlineDemandFirst:
@@ -255,9 +281,26 @@ class OnlineDemandFirst:
         self.job_set = job_set
         self.ele_price = ele_price
 
+        self.cur_pm_id = 1
+        self.active_pm_id = set()
+
         # Create PMs
         self.pm_set = {}
         for i in range(len(job_set)):
             pm_id = i + 1
             pm = PhysicalMachine(pm_id, num_slots=len_slots)
             self.pm_set[pm_id] = pm
+
+    def demand_first(self):
+        sorted_job_set = sorted(self.job_set.values(), key=lambda x: x.demand, reverse=True)
+        for job in sorted_job_set:
+            while not OnlineSolver.can_schedule(job, self.cur_pm_id, self.pm_set):
+                self.cur_pm_id += 1
+            OnlineSolver.schedule(job, self.cur_pm_id, self.pm_set)
+            self.active_pm_id.add(self.cur_pm_id)
+
+    def evaluate_ele_cost(self):
+        return OnlineSolver.evaluate_cost(self.active_pm_id, self.pm_set, self.ele_price)
+
+    def evaluate_pms_num(self):
+        return OnlineSolver.evaluate_pm_num(self.active_pm_id)

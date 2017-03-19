@@ -3,6 +3,7 @@
 class Job:
     """
     This class is the abstraction of the Virtual Machine.
+    :type scheduled_pm_id: int
     """
     def __init__(self, identifier, start_time, end_time, demand, e_price=0.0):
         """
@@ -25,6 +26,8 @@ class Job:
         self.end_time = end_time
         self.demand = demand
         self.e_price = e_price
+        self.scheduled_pm_id = None
+        self.group_id = None
 
     def __str__(self):
         return "Job:\n- id: {}\n- start time: {}\n- end time: {}\n- demand: {}"\

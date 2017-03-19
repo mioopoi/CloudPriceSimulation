@@ -92,3 +92,12 @@ class ILPSolver:
             return 1
         else:
             return 0
+
+    def evaluate_pms_num(self):
+        """
+        :rtype: float
+        """
+        num = 0.0
+        for i in self.job_set:
+            num += self.job_set[i].demand
+        return num

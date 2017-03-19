@@ -6,7 +6,7 @@ from ilp_solver import *
 
 num_points = 7
 num_algorithms = 5
-step = 1000
+step = 100
 results = [[0.0 for col in range(num_algorithms)] for row in range(num_points)]
 
 for point_id in range(0, num_points):
