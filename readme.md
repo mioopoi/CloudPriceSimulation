@@ -2,7 +2,7 @@
 
 This is the source code of the simulation for the paper named 
 *Approximation algorithms for minimizing time-variable electricity cost
-in cloud system*. The code is written in pure python.
+in cloud system (accepted)*. The code is written in pure python.
 
 To successfully run the simulation, first you need to install Anaconda2
 and then install Gurobi to Anaconda.
