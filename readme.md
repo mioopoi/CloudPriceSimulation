@@ -1,9 +1,13 @@
+# Cloud Power Price Simulation
 
-To run the simulation successfully, first you need to install Anaconda2
+This is the source code of the simulation for the paper named 
+*Approximation algorithms for minimizing time-variable electricity cost
+in cloud system*. The code is written in pure python.
+
+To successfully run the simulation, first you need to install Anaconda2
 and then install Gurobi to Anaconda.
 
-Python version: 2.7.11 (Anaconda2)
-
+Python version: 2.7.11 (Anaconda2)  
 Gurobi version: 7.0.2
 
 `simulation_online.py` is the main file for online algorithms and
@@ -14,6 +18,6 @@ has not been uploaded, since it is too large. So others can only run the
 file `simulation_offline.py`, otherwise it will throw an exception. If
 you want to run the online simulation, you can contact me through e-mail.
 
-Author: Huafan Li
-
+Author: Huafan Li 
 E-mail: huafan@seu.edu.cn
+
