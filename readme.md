@@ -5,8 +5,8 @@ and then install Gurobi to Anaconda.
 Python version: 2.7.11 (Anaconda2)
 Gurobi version: 7.0.2
 
-`simulation_online.py` is the main file for offline algorithms and
-`simulation_offline.py` is for online algorithms.
+`simulation_online.py` is the main file for online algorithms and
+`simulation_offline.py` is for offline algorithms.
 
 Notice: The data file (`task_events_out.csv`) for online simulation 
 has not been uploaded, since it is too large. So others can only run the
