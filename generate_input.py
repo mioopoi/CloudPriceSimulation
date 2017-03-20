@@ -1,5 +1,8 @@
 import math
 import random
+import pandas as pd
+import numpy as np
+import os
 
 from machine import *
 
@@ -20,8 +23,8 @@ def gen_data(num_jobs, num_slots):
 
     # generate VMs
     for i in range(1, num_jobs+1):
-        #start_time = random.randint(0, max_t - min_i)
-        start_time = random.randint(0, min_i / 10)
+        start_time = random.randint(0, max_t - min_i)
+        #start_time = random.randint(0, min_i / 10)
         # end_time = random.randint(start_time+min_i, max_t)
         end_time = min(start_time + random.randint(1, num_slots/10), max_t)
         L_MIN = min(end_time - start_time + 1, L_MIN)
@@ -32,7 +35,7 @@ def gen_data(num_jobs, num_slots):
             demand = random.normalvariate(0.16, 0.1)
         job = Job(i, start_time, end_time, demand)
         job_set[i] = job
-    print L_MAX
+    # print L_MAX
 
     # generate PMs
     # We assume the number of PMs is equal to the number of jobs.
@@ -54,7 +57,7 @@ def gen_data(num_jobs, num_slots):
         price = 0.0
         while price <= 0.0 or price > 16.0:
             price = random.normalvariate(0.5, 0.2)
-        j = i + 1
+        j = i + 6
         while i < num_slots and i < j:
             ele_price[i] = price
             i += 1
@@ -62,6 +65,58 @@ def gen_data(num_jobs, num_slots):
     return [job_set, pm_set, ele_price]
 
 
-def load_data():
-    pass
-    ## TODO
+def load_data(num_jobs, num_slots=1000):
+    global L_MIN, L_MAX
+
+    # column_names = ['job_id', 'start_time', 'end_time', 'demand']
+    # df = pd.read_csv('task_events_out.csv', sep=' ', header=None, names=column_names)
+    # df = df.sort("start_time")
+
+    job_set = {}
+    data_file = open("task_events_out.csv")
+    count = 0
+    min_s = float('inf')
+    max_e = 0
+    for line in data_file:
+        [job_id, start_time, end_time, demand] = line.split(' ')
+        job_id, start_time, end_time, demand = count+1, int(start_time), int(end_time), float(demand)
+
+        start_time, end_time = int(math.floor(float(start_time) / 60)), int(math.floor(float(end_time) / 60))
+        if end_time > num_slots:
+            continue
+        min_s = min(min_s, start_time)
+        max_e = max(max_e, end_time)
+
+        L_MIN = min(end_time - start_time + 1, L_MIN)
+        L_MAX = max(end_time - start_time + 1, L_MAX)
+
+        job = Job(job_id, start_time, end_time, demand)
+        job_set[job_id] = job
+
+        count += 1
+        if count >= num_jobs:
+            break
+    data_file.close()
+
+    # print min_s, max_e
+
+    pm_set = {}
+    num_pms = num_jobs
+    for i in range(1, num_pms+1):
+        pm = PhysicalMachine(i, num_slots=num_slots)
+        pm_set[i] = pm
+
+    ele_price = [0.0]*num_slots
+
+    i = 0
+    while i < num_slots:
+        price = 0.0
+        while price <= 0.0 or price > 16.0:
+            price = random.normalvariate(0.5, 0.2)
+        j = i + 6
+        while i < num_slots and i < j:
+            ele_price[i] = price
+            i += 1
+
+    return [job_set, pm_set, ele_price]
+

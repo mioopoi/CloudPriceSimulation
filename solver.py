@@ -3,10 +3,10 @@ import math
 from machine import Job, PhysicalMachine
 
 
-class Solver:
+class OfflineSolver:
 
     def __init__(self):
-        pass
+        self.active_pm_id = set()
 
     def solve_offline_alg(self, job_set, pm_set, ele_price):
         """
@@ -79,11 +79,6 @@ class Solver:
         for job in sorted_job_set:
             self.schedule_job(job, pm_set)
 
-        ret = self.evaluate(pm_set, ele_price)
-        #ret = self.evaluate_pm_number(pm_set)
-
-        return ret
-
     def solve_offline_length_first(self, job_set, pm_set, ele_price):
         """
         Offline algorithm Length-First.
@@ -101,20 +96,10 @@ class Solver:
         for job in sorted_job_set:
             self.schedule_job(job, pm_set)
 
-        ret = self.evaluate(pm_set, ele_price)
-        #ret = self.evaluate_pm_number(pm_set)
-
-        return ret
-
     def solve_offline_first_fit(self, job_set, pm_set, ele_price):
 
         for job_id in job_set:
             self.schedule_job(job_set[job_id], pm_set)
-
-        ret = self.evaluate(pm_set, ele_price)
-        #ret = self.evaluate_pm_number(pm_set)
-
-        return ret
 
     def solve_offline_price_first(self, job_set, pm_set, ele_price):
 
@@ -125,11 +110,6 @@ class Solver:
 
         for job in sorted_job_set:
             self.schedule_job(job, pm_set)
-
-        ret = self.evaluate(pm_set, ele_price)
-        #ret = self.evaluate_pm_number(pm_set)
-
-        return ret
 
     def solve_offline_opt_lb(self, job_set, pm_set, ele_price):
         """
@@ -150,11 +130,6 @@ class Solver:
             for t in range(job.start_time, job.end_time+1):
                 pm.utilization[t] += job.demand
 
-        ret = self.evaluate(pm_set, ele_price)
-        #ret = self.evaluate_pm_number(pm_set)
-
-        return ret
-
     def reset(self, pm_set):
         """
         Reset all the PMs
@@ -168,6 +143,7 @@ class Solver:
             for i in range(0, len(pm.utilization)):
                 pm.utilization[i] = 0.0
             pm.running_jobs = set()
+        self.active_pm_id = set()
 
     def schedule_large_job(self, job, pm_set):
         """
@@ -221,6 +197,7 @@ class Solver:
                 self.__update_utilization(job, pm)
                 pm.power_on_time = min(pm.power_on_time, job.start_time)
                 pm.power_off_time = max(pm.power_off_time, job.end_time)
+                self.active_pm_id.add(pm.id)
                 return
 
     def __update_utilization(self, job, pm):
@@ -291,27 +268,7 @@ class Solver:
 
         return cost
 
-    def evaluate_pm_number(self, pm_set):
-        """
-        Evaluate the cost of the solution.
-        :param pm_set: PMs
-        :return: number of PMs
-        :type pm_set: dict[int, PhysicalMachine]
-        :rtype: float
-        """
-        num_active_machine = 0
-        sign = False
-        sum_uti = 0.0
-        for pm_id in pm_set:
-            pm = pm_set[pm_id]
-            if pm.status is False:
-                continue
-            num_active_machine += 1
-            for t in range(0, pm.power_off_time+1):
-                if pm.utilization[t] > 1.0:
-                    sign = True
-                sum_uti = max(sum_uti, pm.utilization[t])
-        if sign:
-            return math.ceil(sum_uti)
-        else:
-            return num_active_machine
+    def evaluate_pm_number(self):
+
+        return len(self.active_pm_id)
+
