@@ -21,7 +21,7 @@ for point_id in range(0, num_points):
     rounds = 50
     '''total_cost_df, total_cost_lf, total_cost_pf, total_cost_alg, total_cost_opt, total_cost_opt_lb = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0'''
     total_cost_df, total_cost_alg, total_cost_opt_lb = 0.0, 0.0, 0.0
-    total_num_df, total_num_alg, total_num_opt_lb = 0, 0, 0
+    total_num_df, total_num_alg, total_num_opt_lb = 0.0, 0.0, 0.0
     #total_cost_df, total_cost_alg = 0.0, 0.0
     #total_num_df, total_num_alg = 0, 0
 

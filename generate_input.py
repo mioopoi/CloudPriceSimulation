@@ -24,10 +24,10 @@ def gen_data(num_jobs, num_slots):
     # generate VMs
     for i in range(1, num_jobs+1):
         #start_time = random.randint(0, max_t - min_i)
-        start_time = random.randint(0, min_i / 5)   # this setting is for online simulation
+        start_time = random.randint(0, min_i / 10)   # this setting is for online simulation
                                                      # (since the number of active PMs of OPT-LB is relatively small)
         # end_time = random.randint(start_time+min_i, max_t)
-        end_time = min(start_time + random.randint(1, num_slots/10), max_t)
+        end_time = min(start_time + random.randint(1, num_slots/5), max_t)
         L_MIN = min(end_time - start_time + 1, L_MIN)
         L_MAX = max(end_time - start_time + 1, L_MAX)
 

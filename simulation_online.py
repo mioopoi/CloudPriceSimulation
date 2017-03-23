@@ -4,7 +4,7 @@ from generate_input import *
 from ilp_solver import ILPSolver
 from online_solver import OnlineSolver, OnlineDemandFirst
 
-num_points = 3
+num_points = 7
 #num_points = 14
 num_algorithms = 3
 #num_algorithms = 2
