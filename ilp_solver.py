@@ -107,3 +107,23 @@ class ILPSolver:
         for t in range(len(utilization)):
             num = max(num, utilization[t])
         return num
+
+    def evaluate_cost(self):
+        """
+        :return: lower bound of cost (not the linear relaxation)
+        :rtype: float
+        """
+        pm = self.pm_set[1]
+        for i in self.job_set:
+            job = self.job_set[i]
+            for t in range(job.start_time, job.end_time + 1):
+                pm.utilization[t] += job.demand
+
+        e_i, e_p = 0.1, 0.2
+        cost = 0.0
+        for t in range(len(pm.utilization)):
+            if pm.utilization[t] > 0.0:
+                power = e_i + (e_p - e_i) * pm.utilization[t]
+                cost += power * self.ele_price[t]
+
+        return cost

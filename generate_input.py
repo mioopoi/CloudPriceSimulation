@@ -101,20 +101,28 @@ def load_data(num_jobs, num_slots=1000):
             break
     '''
     # Read random line
-    size = 700000
+    size = 7000000
     while count < num_jobs:
         line = random_line(data_file, size)
         [job_id, start_time, end_time, demand] = line.split(' ')
         job_id, start_time, end_time, demand = count+1, int(start_time), int(end_time), float(demand)
 
-        start_time, end_time = int(math.floor(float(start_time) / 60)), int(math.floor(float(end_time) / 60))
-        if end_time > num_slots:
+        start_time, end_time = int(math.floor(float(start_time))), int(math.floor(float(end_time)))
+        start_time = start_time % 1000
+        end_time = end_time % 1000
+        if start_time > end_time:
+            tmp = start_time
+            start_time = end_time
+            end_time = tmp
+
+        if end_time > num_slots or demand > 1.0:
             continue
 
         L_MIN = min(end_time - start_time + 1, L_MIN)
         L_MAX = max(end_time - start_time + 1, L_MAX)
 
         job = Job(job_id, start_time, end_time, demand)
+        #print job_id, start_time, end_time, demand
         job_set[job_id] = job
 
         count += 1
@@ -154,4 +162,3 @@ def random_line(f, size):
         f.seek(0)
         line = f.readline()
     return line
-

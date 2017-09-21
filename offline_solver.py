@@ -7,6 +7,7 @@ class OfflineSolver:
 
     def __init__(self):
         self.active_pm_id = set()
+        self.cur_active_pm_id = 1
 
     def solve_offline_alg(self, job_set, pm_set, ele_price):
         """
@@ -35,14 +36,6 @@ class OfflineSolver:
         #print "Number of jobs in the large set: %d." % len(large_set)
         #print "Number of jobs in the small set: %d." % len(small_set)
 
-        # For each VM in the large set, select from the activated physical machines
-        # to allocate the VM to the first physical machine of which the active time
-        # does not conflict with the interval of this VM. If there exists no such an
-        # activated physical machine, activate one new physical machine to allocate the VM.
-        #sorted_large_set = sorted(large_set, key=lambda x: x.demand, reverse=True)
-        for job in large_set:
-            self.schedule_job(job, pm_set)
-
         # Compute the electricity cost for each VM in the small set.
         for job in small_set:
             self.compute_electricity_cost(job, ele_price)
@@ -54,6 +47,14 @@ class OfflineSolver:
         # activated physical machines to allocate the VM to the first physical machine of
         # which the resource capacity on each time in the interval of the VM is not exceeded
         for job in sorted_small_set:
+            self.schedule_job(job, pm_set)
+
+        # For each VM in the large set, select from the activated physical machines
+        # to allocate the VM to the first physical machine of which the active time
+        # does not conflict with the interval of this VM. If there exists no such an
+        # activated physical machine, activate one new physical machine to allocate the VM.
+        # sorted_large_set = sorted(large_set, key=lambda x: x.demand, reverse=True)
+        for job in large_set:
             self.schedule_job(job, pm_set)
 
         # Evaluate
@@ -142,6 +143,7 @@ class OfflineSolver:
                 pm.utilization[i] = 0.0
             pm.running_jobs = set()
         self.active_pm_id = set()
+        self.cur_active_pm_id = 1
 
     def schedule_large_job(self, job, pm_set):
         """
@@ -186,6 +188,7 @@ class OfflineSolver:
         :type job: Job
         :type pm_set: dict[int, PhysicalMachine]
         """
+        '''
         n = len(pm_set)
         for pm_id in range(1, n+1):
             pm = pm_set[pm_id]
@@ -197,6 +200,19 @@ class OfflineSolver:
                 pm.power_off_time = max(pm.power_off_time, job.end_time)
                 self.active_pm_id.add(pm.id)
                 return
+        '''
+        cur_active_pm_id = 1
+        while not self.__can_schedule(job, pm_set[cur_active_pm_id]):
+            cur_active_pm_id += 1
+            self.active_pm_id.add(cur_active_pm_id)
+        pm = pm_set[cur_active_pm_id]
+        pm.status = True
+        self.__update_utilization(job, pm)
+        pm.power_on_time = min(pm.power_on_time, job.start_time)
+        pm.power_off_time = max(pm.power_off_time, job.end_time)
+        self.active_pm_id.add(cur_active_pm_id)
+        self.cur_active_pm_id = max(self.cur_active_pm_id, cur_active_pm_id)
+
 
     def __update_utilization(self, job, pm):
         """

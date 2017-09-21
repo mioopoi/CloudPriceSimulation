@@ -4,6 +4,8 @@ from offline_solver import *
 from ilp_solver import *
 
 
+random.seed(0)
+
 num_points = 7
 #num_points = 14
 num_algorithms = 3
@@ -64,6 +66,8 @@ for point_id in range(0, num_points):
         total_num_df += num_df
         total_num_alg += num_alg
         total_num_opt_lb += num_opt_lb
+
+        del job_set, pm_set, ele_price
 
     ave_cost_df = total_cost_df / rounds
     '''ave_cost_lf = total_cost_lf / rounds
